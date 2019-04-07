@@ -1,9 +1,14 @@
 <template>
   <li class="node"
-      v-bind:class="{ root: nodeItem.root, closed: isFolder, leaf: !isFolder }"
+      v-bind:class="{ 
+        root: nodeItem.root,
+        closed: isFolder,
+        leaf: !isFolder        
+      }"
   >
     <div class="expand"></div>
-    <div class="content">
+    <div class="content"
+         v-bind:class="{ 'active-item':  currentActive === nodeItem.id }">
       <span>{{ nodeItem.name }}</span>
       <table v-if="!isFolder"
              class="table-desc"
@@ -16,10 +21,10 @@
           <tr>
             <td>Дата изменения:</td>
             <td>{{ nodeItem.lastModifiedDate.getDate() + "."
-                + nodeItem.lastModifiedDate.getMonth() + "."
-                + nodeItem.lastModifiedDate.getFullYear() + " "
-                + nodeItem.lastModifiedDate.getMinutes() + ":"
-                + nodeItem.lastModifiedDate.getHours()
+                 + nodeItem.lastModifiedDate.getMonth() + "."
+                 + nodeItem.lastModifiedDate.getFullYear() + " "
+                 + nodeItem.lastModifiedDate.getMinutes() + ":"
+                 + nodeItem.lastModifiedDate.getHours()
               }}</td>
           </tr>
           <tr v-if="nodeItem.type.includes('image')">
@@ -31,15 +36,19 @@
       </table>
     </div>
     <ul v-if="isFolder && (!!Object.keys(nodeItem.folders).length || !!nodeItem.files.length)" class="container">
-      <TreeNode v-for="(childFolder, index) in nodeItem.folders"
-                :key="index"
+      <TreeNode v-for="childFolder in nodeItem.folders"
+                :key="childFolder.id"
+                :id="childFolder.id"
                 :isFolder="true"
                 :nodeItem="childFolder"
+                :currentActive="sendActive"
       ></TreeNode>
-      <TreeNode v-for="(childFile, index) in nodeItem.files"
-                :key="index"
+      <TreeNode v-for="childFile in nodeItem.files"
+                :key="childFile.id"
+                :id="childFile.id"
                 :isFolder="false"
                 :nodeItem="childFile"
+                :currentActive="sendActive"
       ></TreeNode>
     </ul>
   </li>
@@ -53,9 +62,20 @@
     name: 'TreeNode',
     props: {
       nodeItem: [ Object, File ],
-      isFolder: Boolean
+      isFolder: Boolean,
+      currentActive: Number
     },
-    components: { TreeImage }
+    data() {
+      return {
+        sendActive: this.currentActive
+      }
+    },
+    components: { TreeImage },
+    watch: {
+      currentActive: function(newVal, oldVal) {
+        this.sendActive = newVal;
+      }
+    }
   }
 </script>
 
@@ -121,5 +141,8 @@
   }
   .table-desc td:first-child {
     text-align: right;
+  }
+  .active-item {
+    background-color: red;
   }
 </style>
